@@ -27,7 +27,7 @@ for irw = 1:nrw
   
   % update weights
   e = diag(Theta_rw);
-  beta = 2*alpha/e;
+  beta = 2*alpha/e(1);
   lambdarw = zeros(p);
   for i = 1:p
     for j = 1:p
