@@ -44,7 +44,7 @@ function [A,D,X,Theta] = generateGraph(p,n,varargin)
       Ans(iinit(end),iinit(1)) = 1;
       % generate each additional node
       for i = ninit+1:params.nedge
-        d = sum(triu(Ans+Ans'));
+        d = sum(Ans+Ans');
         pcs = cumsum(d / sum(d));
         r = rand;
         inew = find(r < pcs, 1);
