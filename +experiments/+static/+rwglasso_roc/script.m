@@ -2,8 +2,8 @@
 %  - alpha
 %  - randseed
 
-p = 100;
-n = 100;
+p = 50;
+n = 50;
 
 [A,D,X,Theta] = util.generateGraph(p,n,'randseed',randseed);
 S = 1/n*X*X';
@@ -14,8 +14,6 @@ alpha_sweep = logspace(-2.5,0,6);
 
 % parameters
 nrw = 3;
-e = 1;
-beta = 2*alpha/e;
 Theta_rw = eye(p);
 
 % initialization
@@ -29,6 +27,7 @@ for irw = 1:nrw
   
   % update weights
   e = diag(Theta_rw);
+  beta = 2*alpha/e;
   lambdarw = zeros(p);
   for i = 1:p
     for j = 1:p
@@ -53,7 +52,7 @@ for irw = 1:nrw
   Theta_rw_hist(:,:,irw) = Theta_rw;
   cost_rw(irw) = cvx_optval;
   rmse_rw(irw) = norm(Theta(:)-Theta_rw(:)) / norm(Theta(:));
-  err_rw(irw)  = util.evaluateGraph(Theta, Theta_rw, 'all', 100*cvx_slvtol);
+  err_rw(irw)  = util.evaluateGraph(Theta, Theta_rw, 'all', 1e3*cvx_slvtol);
   
 end
 
