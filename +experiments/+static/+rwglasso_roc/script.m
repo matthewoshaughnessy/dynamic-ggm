@@ -10,23 +10,23 @@ S = 1/n*X*X';
 
 
 %% recover with reweighted l1-penalized maximum likelihood
-alpha_sweep = logspace(-2.5,0,6);
 
 % parameters
 nrw = 3;
 Theta_rw = eye(p);
+e = 0.5*ones(1,p);
 
 % initialization
-Theta_rw_hist = zeros(p,p,nrw);
-cost_rw = zeros(nrw,1);
-rmse_rw = zeros(nrw,1);
+Theta_hist = zeros(p,p,nrw);
+gcost = zeros(nrw,1);
+scost = zeros(nrw,1);
+rmse = zeros(nrw,1);
 theta_ni = @(i) sum(abs(Theta_rw(i,setdiff(1:p,i))));
 
 % --- solve reweighted graphical lasso ---
 for irw = 1:nrw
   
   % update weights
-  e = diag(Theta_rw);
   beta = 2*alpha/e(1);
   lambdarw = zeros(p);
   for i = 1:p
@@ -48,11 +48,18 @@ for irw = 1:nrw
   Theta_rw - eps*eye(p) == semidefinite(p)
   cvx_end
   
+  cost_surrogate = -log_det(Theta_rw) + trace(S*Theta_rw) + ...
+    sum(lambdarw(:).*abs(Theta_rw(:))) + beta*sum(abs(diag(Theta_rw)));
+  cost_global = -log_det(Theta_rw) + trace(S*Theta_rw) + ...
+    alpha*log(sum(sum(abs(Theta_rw-diag(diag(Theta_rw))))+e)) + ...
+    beta*sum(abs(diag(Theta_rw)));
+  
   % save data from this iteration
-  Theta_rw_hist(:,:,irw) = Theta_rw;
-  cost_rw(irw) = cvx_optval;
-  rmse_rw(irw) = norm(Theta(:)-Theta_rw(:)) / norm(Theta(:));
-  err_rw(irw)  = util.evaluateGraph(Theta, Theta_rw, 'all', 1e3*cvx_slvtol);
+  Theta_hist(:,:,irw) = Theta_rw;
+  scost(irw) = cost_surrogate;
+  gcost(irw) = cost_global;
+  rmse(irw) = norm(Theta(:)-Theta_rw(:)) / norm(Theta(:));
+  err(irw)  = util.evaluateGraph(Theta, Theta_rw, 'all', 1e3*cvx_slvtol);
   
 end
 

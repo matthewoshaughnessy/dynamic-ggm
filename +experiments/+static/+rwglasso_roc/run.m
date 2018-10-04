@@ -2,10 +2,10 @@
 % networks by reweighted l1 regularization,' Proc. AISTATS 2011.
 
 params = struct( ...
-  'alpha', logspace(-3,0,280), ...
+  'alpha', logspace(-1.9,-0.2,280), ...
   'randseed', 0);
 
-varsToStore = {'A','S','Theta','Theta_rw_hist','cost_rw','rmse_rw','err_rw'};
+varsToStore = {'A','S','Theta','Theta_hist','scost','gcost','rmse','err'};
 
 scriptname = 'experiments.static.rwglasso_roc.script';
 if strfind(getenv('HOSTNAME'),'.pace.gatech.edu')
