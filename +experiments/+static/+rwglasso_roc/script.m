@@ -1,5 +1,6 @@
 % INPUTS:
 %  - alpha
+%  - epsilon
 %  - randseed
 
 p = 50;
@@ -14,7 +15,7 @@ S = 1/n*X*X';
 % parameters
 nrw = 3;
 Theta_rw = eye(p);
-e = 0.5*ones(1,p);
+e = epsilon*ones(1,p);
 
 % initialization
 Theta_hist = zeros(p,p,nrw);
