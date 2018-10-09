@@ -21,12 +21,12 @@ function [A,D,X,Theta] = generateGraph(p,n,varargin)
   addRequired( parser, 'p',    @(x)isnumeric(x)&&x==round(x));
   addRequired( parser, 'n',    @(x)isnumeric(x)&&x==round(x));
   addParameter(parser, 'type',     'ba',     @(x)any(strcmpi(x,{'ba'})));
-  addParameter(parser, 'randseed', randseed, @(x)isnumeric(x));
+  addParameter(parser, 'randseed', [],       @(x)isnumeric(x));
   addParameter(parser, 'nedge',    [],       @(x)isnumeric(x)&&x==round(x));
   parse(parser,p,n,varargin{:});
   params = parser.Results;
   if isempty(params.nedge), params.nedge = params.p; end
-  rng(params.randseed);
+  if ~isempty(params.randseed), rng(params.randseed); end
   
   
   % === generate graph ===
