@@ -33,12 +33,17 @@ for irw = 1:nrw
   lambda_rw = lambda_rw - diag(diag(lambda_rw));
   
   % update precision matrix estimate
-  cvx_begin quiet
-  variable Theta_rw(p,p) symmetric
-  minimize ( - log_det(Theta_rw) + trace(S*Theta_rw) + sum(lambda_rw(:).*abs(Theta_rw(:))) )
-  subject to
-    Theta_rw - 1e-12*eye(p) == semidefinite(p)
-  cvx_end
+  try
+    cvx_begin quiet
+    variable Theta_rw(p,p) symmetric
+    minimize ( - log_det(Theta_rw) + trace(S*Theta_rw) + sum(lambda_rw(:).*abs(Theta_rw(:))) )
+    subject to
+      Theta_rw - 1e-12*eye(p) == semidefinite(p)
+    cvx_end
+  catch
+    warning(lasterr);
+    Theta_rw = nan(p,p);
+  end
   
   % save data from this iteration
   Theta_hist(:,:,irw) = Theta_rw;
