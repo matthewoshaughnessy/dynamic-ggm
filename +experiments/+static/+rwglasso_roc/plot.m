@@ -1,37 +1,47 @@
 load +experiments/+static/+rwglasso_roc/results.mat
-[nalpha,ntrials] = size(results);
-p = length(results{1}.A);
-nrw = length(results{1}.err);
-fpr = zeros(nrw,nalpha,ntrials);
-tpr = zeros(nrw,nalpha,ntrials);
-scost = zeros(nrw,nalpha,ntrials);
-gcost = zeros(nrw,nalpha,ntrials);
-rmse = zeros(nrw,nalpha,ntrials);
-Theta_hist = zeros(p,p,nrw,nalpha,ntrials);
-Theta = zeros(p,p,ntrials);
-alphas = zeros(1,nalpha);
-for it = 1:ntrials
-  Theta(:,:,it) = results{1,it}.Theta;
-  for ia = 1:nalpha
-    alphas(ia) = results{ia,it}.inputs{1};
-    for ir = 1:nrw
-      fpr(ir,ia,it) = results{ia,it}.err(ir).fpr;
-      tpr(ir,ia,it) = results{ia,it}.err(ir).tpr;
-      scost(ir,ia,it) = results{ia,it}.scost(ir);
-      gcost(ir,ia,it) = results{ia,it}.gcost(ir);
-      rmse(ir,ia,it) = results{ia,it}.rmse(ir);
-      Theta_hist(:,:,ir,ia,it) = results{ia,it}.Theta_hist(:,:,ir);
-    end
-  end
-end
+params = struct( ...
+  'lambda_m', logspace(-5,1,100), ...
+	'lambda_d', logspace(-2,1,10), ...
+	'lambda_a', 1e-4, ...
+	'pinnov',   [0 0.02 0.04 0.06 0.08], ...
+  'randseed', 1:12);
 
 
 %%
+[nlm,nld,nla,ni,ntrials] = size(results);
+nrw = length(results{1}.err);
+fpr = zeros(nrw,nlm,nld,nla,ni,ntrials);
+tpr = zeros(nrw,nlm,nld,nla,ni,ntrials);
+mcc = zeros(nrw,nlm,nld,nla,ni,ntrials);
+for it = 1:ntrials
+  for ilm = 1:nlm
+    for ild = 1:nld
+      for ila = 1:nla
+        for ii = 1:ni
+          for irw = 1:nrw
+            r = results{ilm,ild,ila,ii,it};
+            fpr(irw,ilm,ild,ila,ii,it) = r.err(irw).fpr;
+            tpr(irw,ilm,ild,ila,ii,it) = r.err(irw).tpr;
+            mcc(irw,ilm,ild,ila,ii,it) = r.err(irw).mcc;
+          end
+        end
+      end
+    end
+  end
+end
+clearvars ii ila ild ilm irw it
+
+
+%% plot ROC curve
 cols = cbrewer('seq','Blues',nrw+1);
 figure(1); clf;
-f = @(x) mean(x,3);
+ild = 1;
+ila = 1;
+ii = 1;
+f = @(x) mean(x,6);
 for i = 1:nrw
-  plot(f(fpr(i,:)),f(tpr(i,:)),'x-','color',cols(i+1,:),'linew',2); hold on;
+  plot(f(fpr(i,:,ild,ila,ii,:)),f(tpr(i,:,ild,ila,ii,:)), ...
+    'x-','color',cols(i+1,:),'linew',2); hold on;
 end
 %plot(err_ml.fpr,err_ml.tpr,'o','color',parulacols(4));
 grid on; xlabel('False positive rate'); ylabel('True positive rate');
@@ -40,7 +50,26 @@ legend('Graphical lasso', ...
   'Weighted graphical lasso (2)', ...
   'location', 'se');
 set(gca,'fontsize',24); grid on;
-export_fig -transparent +experiments/+static/+rwglasso_roc/plot1.pdf
+%export_fig -transparent +experiments/+static/+rwglasso_roc/plot1.pdf
+
+
+%% plot MCC
+cols = cbrewer('seq','Blues',nrw+1);
+figure(1); clf;
+ild = 1;
+ila = 1;
+ii = 1;
+f = @(x) mean(x,6,'omitnan');
+for i = 1:nrw
+  plot(f(mcc(i,:,ild,ila,ii,:)), ...
+    'x-','color',cols(i+1,:),'linew',2); hold on;
+end
+grid on; xlabel('$$\lambda_m$$','interpreter','latex'); ylabel('MCC');
+legend('Graphical lasso', ...
+  'Weighted graphical lasso (1)', ...
+  'Weighted graphical lasso (2)', ...
+  'location', 'se');
+set(gca,'fontsize',24); grid on;
 
 
 %%

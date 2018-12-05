@@ -1,7 +1,8 @@
 % INPUTS:
 %  - alpha
-%  - epsilon
 %  - randseed
+%alpha = 0.1;
+%randseed = 1;
 
 p = 50;
 n = 50;
@@ -13,9 +14,8 @@ S = 1/n*X*X';
 %% recover with reweighted l1-penalized maximum likelihood
 
 % parameters
-nrw = 3;
+nrw = 4;
 Theta_rw = eye(p);
-e = epsilon*ones(1,p);
 
 % initialization
 Theta_hist = zeros(p,p,nrw);
@@ -28,6 +28,7 @@ theta_ni = @(i) sum(abs(Theta_rw(i,setdiff(1:p,i))));
 for irw = 1:nrw
   
   % update weights
+  e = diag(Theta_rw);
   beta = 2*alpha/e(1);
   lambdarw = zeros(p);
   for i = 1:p
@@ -46,21 +47,22 @@ for irw = 1:nrw
   minimize ( - log_det(Theta_rw) + trace(S*Theta_rw) ...
     + sum(lambdarw(:).*abs(Theta_rw(:))) + beta*sum(abs(diag(Theta_rw))) )
   subject to
-  Theta_rw - eps*eye(p) == semidefinite(p)
+    Theta_rw - eps*eye(p) == semidefinite(p)
   cvx_end
   
+  % calculate cost
   cost_surrogate = -log_det(Theta_rw) + trace(S*Theta_rw) + ...
     sum(lambdarw(:).*abs(Theta_rw(:))) + beta*sum(abs(diag(Theta_rw)));
   cost_global = -log_det(Theta_rw) + trace(S*Theta_rw) + ...
-    alpha*log(sum(sum(abs(Theta_rw-diag(diag(Theta_rw))))+e)) + ...
+    alpha*log(sum(sum(abs(Theta_rw-diag(diag(Theta_rw))))+e.')) + ...
     beta*sum(abs(diag(Theta_rw)));
   
   % save data from this iteration
   Theta_hist(:,:,irw) = Theta_rw;
   scost(irw) = cost_surrogate;
   gcost(irw) = cost_global;
-  rmse(irw) = norm(Theta(:)-Theta_rw(:)) / norm(Theta(:));
-  err(irw)  = util.evaluateGraph(Theta, Theta_rw, 'all', 1e3*cvx_slvtol);
+  rmse(irw)  = norm(Theta(:)-Theta_rw(:)) / norm(Theta(:));
+  err(irw)   = util.evaluateGraph(Theta, Theta_rw, 'all', 1e3*cvx_slvtol);
   
 end
 

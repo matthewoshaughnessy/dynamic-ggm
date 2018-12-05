@@ -18,7 +18,7 @@ function [Theta_noisy, A_noisy] = addNoise(Theta,pchange)
   ind_z  = find(Theta_ud == 0 & mask_triu);
   ind_nz = find(abs(Theta_ud) > 0 & mask_triu);
   
-  nchange = round(pchange*(p^2-p)/2);
+  nchange = round(pchange*length(ind_nz));
   ind_add = ind_z(randperm(length(ind_z),nchange));
   ind_remove = ind_nz(randperm(length(ind_nz),nchange));
   

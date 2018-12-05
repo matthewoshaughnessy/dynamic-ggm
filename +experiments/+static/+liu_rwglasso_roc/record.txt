@@ -1,4 +1,2 @@
-Submitted 05-Oct-2018 09:33:55 -- moshaughnessy6@login-d.pace.gatech.edu's password: 
-Permission denied, please try again.
-moshaughnessy6@login-d.pace.gatech.edu's password: 
-4504652.dedicated-sched.pace.gatech.edu
+Submitted 01-Dec-2018 00:27:37 -- moshaughnessy6@login-d.pace.gatech.edu's password: 
+4599648.dedicated-sched.pace.gatech.edu

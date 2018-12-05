@@ -6,7 +6,7 @@ function [A,D,X,Theta] = generateGraph(p,n,varargin)
 %  n        : number of samples 
 % PARAMETERS
 %  type     : type of graph to generate (default: 'ba')
-%              - 'ba'     : scale-free graph using Barabasi-Albert 1999
+%              - 'ba'     : scale-free graph from Barabasi-Albert 1999
 %  randseed : seed for random number generator (default: random prime)
 %  nedge    : number of edges (default: p)
 % OUTPUTS
@@ -16,7 +16,7 @@ function [A,D,X,Theta] = generateGraph(p,n,varargin)
 %  Theta    : p x p precision matrix
 
 
-  % === parse inputs ===
+  % --- parse inputs ---
   parser = inputParser;
   addRequired( parser, 'p',    @(x)isnumeric(x)&&x==round(x));
   addRequired( parser, 'n',    @(x)isnumeric(x)&&x==round(x));
@@ -29,27 +29,29 @@ function [A,D,X,Theta] = generateGraph(p,n,varargin)
   if ~isempty(params.randseed), rng(params.randseed); end
   
   
-  % === generate graph ===
-  Ans = zeros(params.p);
+  % --- generate graph --
+  A = zeros(params.p);
   switch lower(params.type)
     
-    % --- scale-free graph using barabasi-albert (1999) method ---
+    % scale-free graph using method from barabasi-albert (1999)
     case 'ba'
       % create initial 4-node cycle
       ninit = 4;
       iinit = 1:ninit;
       for i = 1:ninit-1
-        Ans(iinit(i),iinit(i+1)) = 1;
+        A(iinit(i),iinit(i+1)) = 1;
+        A(iinit(i+1),iinit(i)) = 1;
       end
-      Ans(iinit(end),iinit(1)) = 1;
+      A(iinit(end),iinit(1)) = 1;
+      A(iinit(1),iinit(end)) = 1;
       % generate each additional node
       for i = ninit+1:params.nedge
-        d = sum(Ans+Ans');
+        d = sum(A);
         pcs = cumsum(d / sum(d));
         r = rand;
         inew = find(r < pcs, 1);
-        Ans(i,inew) = 1;
-        A = Ans + Ans';
+        A(i,inew) = 1;
+        A(inew,i) = 1;
         D = diag(sum(A));
       end
       
@@ -58,7 +60,7 @@ function [A,D,X,Theta] = generateGraph(p,n,varargin)
 
   end
   
-  % === generate observations ===
+  % --- generate observations ---
   L = 1.1*D - A;
   Lambda = diag(diag(inv(L)));
   Theta = sqrt(Lambda)*L*sqrt(Lambda);
