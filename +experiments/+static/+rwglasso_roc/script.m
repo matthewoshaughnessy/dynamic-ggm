@@ -40,13 +40,18 @@ for irw = 1:nrw
   
   % update precision matrix estimate
   diagLambdarwThetarw = diag(diag(Lambda_rw.*abs(Theta_prev)));
-  cvx_begin quiet
-    variable Theta_rw(p,p) symmetric
-    minimize ( - log_det(Theta_rw) + trace(S*Theta_rw) + lambda0*...
-      sum( Lambda_rw(:).*abs(Theta_rw(:)).*ndiagmask(:) ) )
-    subject to
-      Theta_rw - 1e-12*eye(p) == semidefinite(p)
-  cvx_end
+  try
+    cvx_begin quiet
+      variable Theta_rw(p,p) symmetric
+      minimize ( - log_det(Theta_rw) + trace(S*Theta_rw) + lambda0*...
+        sum( Lambda_rw(:).*abs(Theta_rw(:)).*ndiagmask(:) ) )
+      subject to
+        Theta_rw - 1e-12*eye(p) == semidefinite(p)
+    cvx_end
+  catch
+    warning('CVX error.');
+    Theta_rw = nan(p,p);
+  end
   
   % save data from this iteration
   Theta_hist(:,:,irw) = Theta_rw;
